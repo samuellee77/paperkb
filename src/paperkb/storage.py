@@ -1,6 +1,8 @@
 from pathlib import Path
 from shutil import copy2
+from typing import Any
 
+import json
 import yaml
 
 from paperkb.config import DEMO_PAPER_ID, DEMO_PAPER_SOURCE, METADATA_DIR, PAPERS_DIR
@@ -82,6 +84,106 @@ def add_paper(
     )
     write_paper(paper)
     return paper
+
+
+def add_paper_from_data(data: dict[str, Any], pdf_path: Path | None = None) -> Paper:
+    template_pdf_path = str(data.get("pdf_path") or "").strip()
+    selected_pdf_path = pdf_path or (Path(template_pdf_path) if template_pdf_path else None)
+    if selected_pdf_path is None:
+        raise ValueError("Template must include pdf_path, or pass a PDF path to `paperkb add`.")
+    if "title" not in data:
+        raise ValueError("Template must include title.")
+
+    return add_paper(
+        pdf_path=selected_pdf_path,
+        title=str(data["title"]),
+        authors=_list_field(data.get("authors")),
+        year=_optional_int(data.get("year")),
+        keywords=_list_field(data.get("keywords")),
+        abstract=str(data.get("abstract") or ""),
+        notes=str(data.get("notes") or ""),
+    )
+
+
+def load_add_template(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        raise FileNotFoundError(f"Template not found: {path}")
+    if path.suffix.lower() == ".json":
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            raise ValueError("JSON template must be an object.")
+        return data
+    if path.suffix.lower() in {".txt", ".text"}:
+        return _parse_text_template(path.read_text(encoding="utf-8"))
+    raise ValueError("Template must be a .json or .txt file.")
+
+
+def template_data() -> dict[str, Any]:
+    return {
+        "pdf_path": "./paper.pdf",
+        "title": "Paper Title",
+        "authors": ["Author One", "Author Two"],
+        "year": 2026,
+        "keywords": ["keyword one", "keyword two"],
+        "abstract": "Short paper abstract.",
+        "notes": "Personal notes for this paper.",
+    }
+
+
+def write_add_template(path: Path, template_format: str) -> Path:
+    if template_format not in {"json", "txt"}:
+        raise ValueError("Template format must be json or txt.")
+    if path.exists():
+        raise FileExistsError(f"Template already exists: {path}")
+
+    data = template_data()
+    if template_format == "json":
+        path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    else:
+        path.write_text(_format_text_template(data), encoding="utf-8")
+    return path
+
+
+def _parse_text_template(text: str) -> dict[str, Any]:
+    data: dict[str, Any] = {}
+    current_key: str | None = None
+    for line in text.splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        if ":" in line and not line.startswith((" ", "\t")):
+            key, value = line.split(":", 1)
+            current_key = key.strip()
+            data[current_key] = value.strip()
+        elif current_key:
+            data[current_key] = f"{data[current_key]}\n{line.strip()}".strip()
+    return data
+
+
+def _format_text_template(data: dict[str, Any]) -> str:
+    return (
+        "# Edit this file, then run: paperkb add --from-file paper.txt\n"
+        f"pdf_path: {data['pdf_path']}\n"
+        f"title: {data['title']}\n"
+        f"authors: {', '.join(data['authors'])}\n"
+        f"year: {data['year']}\n"
+        f"keywords: {', '.join(data['keywords'])}\n"
+        f"abstract: {data['abstract']}\n"
+        f"notes: {data['notes']}\n"
+    )
+
+
+def _list_field(value: Any) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    return [item.strip() for item in str(value).split(",") if item.strip()]
+
+
+def _optional_int(value: Any) -> int | None:
+    if value in {None, ""}:
+        return None
+    return int(value)
 
 
 def seed_demo_paper() -> Paper | None:

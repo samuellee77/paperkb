@@ -9,7 +9,17 @@ from rich.table import Table
 from paperkb.citation import citation_match, format_citation, matched_keywords
 from paperkb.indexer import build_index
 from paperkb.search import search_papers
-from paperkb.storage import add_paper, get_paper, init_library, load_papers, metadata_path, seed_demo_paper
+from paperkb.storage import (
+    add_paper,
+    add_paper_from_data,
+    get_paper,
+    init_library,
+    load_add_template,
+    load_papers,
+    metadata_path,
+    seed_demo_paper,
+    write_add_template,
+)
 from paperkb.utils import parse_csv
 
 app = typer.Typer(help="Manage a local knowledge base of research papers.")
@@ -34,31 +44,59 @@ def init() -> None:
 
 @app.command("add")
 def add_command(
-    pdf_path: Annotated[Path, typer.Argument(help="Path to the PDF to add.")],
-    title: Annotated[str, typer.Option("--title", "-t", help="Paper title.")],
+    pdf_path: Annotated[Path | None, typer.Argument(help="Path to the PDF to add.")] = None,
+    title: Annotated[str | None, typer.Option("--title", "-t", help="Paper title.")] = None,
     authors: Annotated[str, typer.Option("--authors", "-a", help="Comma-separated authors.")] = "",
     year: Annotated[int | None, typer.Option("--year", "-y", help="Publication year.")] = None,
     keywords: Annotated[str, typer.Option("--keywords", "-k", help="Comma-separated keywords.")] = "",
     abstract: Annotated[str, typer.Option("--abstract", help="Paper abstract.")] = "",
     notes: Annotated[str, typer.Option("--notes", "-n", help="Personal notes.")] = "",
+    from_file: Annotated[
+        Path | None,
+        typer.Option("--from-file", "-f", help="JSON or TXT metadata template to add from."),
+    ] = None,
 ) -> None:
     """Copy a PDF into the library and write YAML metadata."""
     try:
-        paper = add_paper(
-            pdf_path=pdf_path,
-            title=title,
-            authors=parse_csv(authors),
-            year=year,
-            keywords=parse_csv(keywords),
-            abstract=abstract,
-            notes=notes,
-        )
+        if from_file:
+            paper = add_paper_from_data(load_add_template(from_file), pdf_path=pdf_path)
+        else:
+            if pdf_path is None:
+                raise ValueError("PDF path is required unless --from-file includes pdf_path.")
+            if title is None:
+                raise ValueError("--title is required unless using --from-file.")
+            paper = add_paper(
+                pdf_path=pdf_path,
+                title=title,
+                authors=parse_csv(authors),
+                year=year,
+                keywords=parse_csv(keywords),
+                abstract=abstract,
+                notes=notes,
+            )
     except (FileNotFoundError, ValueError) as error:
         console.print(f"[red]{error}[/red]")
         raise typer.Exit(code=1) from error
 
     build_index()
     console.print(f"[green]Added[/green] {paper.id}")
+
+
+@app.command()
+def template(
+    output: Annotated[Path, typer.Argument(help="Where to write the metadata template.")],
+    template_format: Annotated[
+        str,
+        typer.Option("--format", "-f", help="Template format: json or txt."),
+    ] = "json",
+) -> None:
+    """Write an editable add-paper metadata template."""
+    try:
+        path = write_add_template(output, template_format.lower())
+    except (FileExistsError, ValueError) as error:
+        console.print(f"[red]{error}[/red]")
+        raise typer.Exit(code=1) from error
+    console.print(f"[green]Wrote template[/green] {path}")
 
 
 @app.command("list")

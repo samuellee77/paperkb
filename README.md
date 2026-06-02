@@ -39,6 +39,27 @@ uv run paperkb add ./attention.pdf \
   --notes "Useful baseline citation for sequence modeling."
 ```
 
+Or generate a template, edit it, and add from the file:
+
+```bash
+uv run paperkb template paper.json
+uv run paperkb add --from-file paper.json
+```
+
+TXT templates are also supported:
+
+```bash
+uv run paperkb template paper.txt --format txt
+uv run paperkb add --from-file paper.txt
+```
+
+The template file can include `pdf_path`, or you can pass a PDF path to override
+the file:
+
+```bash
+uv run paperkb add ./attention.pdf --from-file paper.json
+```
+
 List papers:
 
 ```bash
@@ -74,6 +95,7 @@ uv run paperkb rebuild --include-pdf-text
 
 - `paperkb init`
 - `paperkb add`
+- `paperkb template`
 - `paperkb list`
 - `paperkb search`
 - `paperkb cite`
