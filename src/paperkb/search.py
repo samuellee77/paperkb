@@ -1,10 +1,10 @@
 from rapidfuzz import fuzz, process
 
-from paperkb.indexer import build_index
+from paperkb.indexer import load_index
 
 
 def search_papers(query: str, limit: int = 10) -> list[dict[str, object]]:
-    entries = build_index()
+    entries = load_index()
     choices = {entry["id"]: str(entry["text"]) for entry in entries}
     matches = process.extract(
         query.lower(),

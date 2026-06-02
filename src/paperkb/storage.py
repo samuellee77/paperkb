@@ -48,6 +48,13 @@ def load_papers() -> list[Paper]:
     return papers
 
 
+def get_paper(paper_id: str) -> Paper | None:
+    path = metadata_path(paper_id)
+    if not path.exists():
+        return None
+    return read_paper(path)
+
+
 def add_paper(
     pdf_path: Path,
     title: str,

@@ -51,9 +51,31 @@ Search papers:
 uv run paperkb search "transformer attention"
 ```
 
-## Implemented
+Print the best matching citation:
+
+```bash
+uv run paperkb cite "face inversion effect"
+```
+
+Show full metadata:
+
+```bash
+uv run paperkb show demo-ife-paper
+```
+
+Rebuild the search index:
+
+```bash
+uv run paperkb rebuild
+uv run paperkb rebuild --include-pdf-text
+```
+
+## Commands
 
 - `paperkb init`
 - `paperkb add`
 - `paperkb list`
 - `paperkb search`
+- `paperkb cite`
+- `paperkb show`
+- `paperkb rebuild`
