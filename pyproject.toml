@@ -1,0 +1,21 @@
+[project]
+name = "paperkb"
+version = "0.1.0"
+description = "A local CLI knowledge base for research papers."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.13.4",
+    "pymupdf>=1.27.2.3",
+    "pyyaml>=6.0.3",
+    "rapidfuzz>=3.14.5",
+    "rich>=15.0.0",
+    "typer>=0.26.5",
+]
+
+[project.scripts]
+paperkb = "paperkb.cli:app"
+
+[build-system]
+requires = ["uv_build>=0.10.6,<0.11.0"]
+build-backend = "uv_build"

@@ -22,6 +22,11 @@ build/
 .idea/
 .vscode/
 
+# Local paperkb library data. Keep real PDFs, metadata, notes, and generated
+# indexes out of git.
+data/
 .paperkb/
 papers/
+metadata/
+*.pdf
 index.json

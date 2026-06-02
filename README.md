@@ -1,21 +1,59 @@
 # paperkb
 
 `paperkb` is a Python CLI for managing a local knowledge base of research
-papers. The tool will store each paper's PDF alongside YAML metadata, then
-provide commands for listing, searching, showing, citing, and rebuilding the
-local index.
+papers. It stores PDFs in `data/papers/`, writes YAML metadata to
+`data/metadata/`, and builds a local `data/index.json` for search.
 
-Planned commands:
+## Install
+
+From a local checkout:
 
 ```bash
-paperkb init
-paperkb add <pdf_path> --title "Attention Is All You Need" --authors "Vaswani et al." --year 2017
-paperkb list
-paperkb search transformers
-paperkb cite transformers
-paperkb show <paper_id>
-paperkb rebuild
+uv sync
+uv run paperkb --help
 ```
 
-The project is intended to be built with `uv`, `Typer`, `Rich`, `Pydantic`,
-`PyYAML`, `RapidFuzz`, and optional PDF text extraction via `PyMuPDF`.
+From GitHub:
+
+```bash
+uv add "git+https://github.com/samuellee77/paperkb.git"
+```
+
+## Usage
+
+Initialize the local library:
+
+```bash
+uv run paperkb init
+```
+
+Add a paper:
+
+```bash
+uv run paperkb add ./attention.pdf \
+  --title "Attention Is All You Need" \
+  --authors "Vaswani et al." \
+  --year 2017 \
+  --keywords "transformer,attention,NLP" \
+  --abstract "Introduces the Transformer architecture." \
+  --notes "Useful baseline citation for sequence modeling."
+```
+
+List papers:
+
+```bash
+uv run paperkb list
+```
+
+Search papers:
+
+```bash
+uv run paperkb search "transformer attention"
+```
+
+## Implemented
+
+- `paperkb init`
+- `paperkb add`
+- `paperkb list`
+- `paperkb search`
