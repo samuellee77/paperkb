@@ -7,7 +7,7 @@ from rich.table import Table
 
 from paperkb.indexer import build_index
 from paperkb.search import search_papers
-from paperkb.storage import add_paper, init_library, load_papers
+from paperkb.storage import add_paper, init_library, load_papers, metadata_path, seed_demo_paper
 from paperkb.utils import parse_csv
 
 app = typer.Typer(help="Manage a local knowledge base of research papers.")
@@ -16,10 +16,18 @@ console = Console()
 
 @app.command()
 def init() -> None:
-    """Create the local data directories."""
+    """Create the local data directories and seed the demo IFE paper."""
     init_library()
+    had_demo = metadata_path("demo-ife-paper").exists()
+    demo_paper = seed_demo_paper()
     build_index()
     console.print("[green]Initialized paperkb library in ./data[/green]")
+    if demo_paper and not had_demo:
+        console.print(f"[green]Seeded demo paper[/green] {demo_paper.id}")
+    elif demo_paper:
+        console.print(f"[cyan]Demo paper already exists[/cyan] {demo_paper.id}")
+    else:
+        console.print("[yellow]Demo paper not found: demo_ife_paper.pdf[/yellow]")
 
 
 @app.command("add")

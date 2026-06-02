@@ -3,7 +3,7 @@ from shutil import copy2
 
 import yaml
 
-from paperkb.config import METADATA_DIR, PAPERS_DIR
+from paperkb.config import DEMO_PAPER_ID, DEMO_PAPER_SOURCE, METADATA_DIR, PAPERS_DIR
 from paperkb.models import Paper
 from paperkb.utils import ensure_pdf, slugify
 
@@ -72,6 +72,49 @@ def add_paper(
         abstract=abstract,
         notes=notes,
         pdf_path=str(stored_pdf),
+    )
+    write_paper(paper)
+    return paper
+
+
+def seed_demo_paper() -> Paper | None:
+    init_library()
+    demo_metadata = metadata_path(DEMO_PAPER_ID)
+    if demo_metadata.exists():
+        return read_paper(demo_metadata)
+    if not DEMO_PAPER_SOURCE.exists():
+        return None
+
+    stored_pdf = PAPERS_DIR / f"{DEMO_PAPER_ID}.pdf"
+    copy2(DEMO_PAPER_SOURCE, stored_pdf)
+
+    paper = Paper(
+        id=DEMO_PAPER_ID,
+        title="A Mechanistic Explanation for the Inverted Face Effect",
+        authors=[
+            "Alex Tahan",
+            "Hsin-Yuan Lee",
+            "Kira Fleischer",
+            "Nikita Kachappilly",
+            "Xavier Chen",
+            "Garrison W. Cottrell",
+        ],
+        year=2026,
+        keywords=[
+            "Inverted Face Effect",
+            "Face Processing",
+            "Biologically Plausible Models",
+            "log-polar mapping",
+            "foveated retina",
+        ],
+        abstract=(
+            "Presents a mechanistic account of the Inverted Face Effect using "
+            "multiple fixations, salience-driven sampling, a foveated retina, "
+            "and log-polar mapping from the visual field to V1."
+        ),
+        notes="Demo seed paper created by `paperkb init`.",
+        pdf_path=str(stored_pdf),
+        citation="Tahan, Lee, Fleischer, Kachappilly, Chen, & Cottrell (2026)",
     )
     write_paper(paper)
     return paper
