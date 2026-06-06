@@ -3,7 +3,7 @@ name = "paperkb"
 version = "0.1.0"
 description = "A local CLI knowledge base for research papers."
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 dependencies = [
     "pydantic>=2.13.4",
     "pymupdf>=1.27.2.3",
