@@ -1,10 +1,11 @@
 from pathlib import Path
-from typing import Annotated
+from typing import Optional
 
 import typer
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
+from typing_extensions import Annotated
 
 from paperkb.citation import citation_match, format_citation, matched_keywords
 from paperkb.indexer import build_index
@@ -44,15 +45,15 @@ def init() -> None:
 
 @app.command("add")
 def add_command(
-    pdf_path: Annotated[Path | None, typer.Argument(help="Path to the PDF to add.")] = None,
-    title: Annotated[str | None, typer.Option("--title", "-t", help="Paper title.")] = None,
+    pdf_path: Annotated[Optional[Path], typer.Argument(help="Path to the PDF to add.")] = None,
+    title: Annotated[Optional[str], typer.Option("--title", "-t", help="Paper title.")] = None,
     authors: Annotated[str, typer.Option("--authors", "-a", help="Comma-separated authors.")] = "",
-    year: Annotated[int | None, typer.Option("--year", "-y", help="Publication year.")] = None,
+    year: Annotated[Optional[int], typer.Option("--year", "-y", help="Publication year.")] = None,
     keywords: Annotated[str, typer.Option("--keywords", "-k", help="Comma-separated keywords.")] = "",
     abstract: Annotated[str, typer.Option("--abstract", help="Paper abstract.")] = "",
     notes: Annotated[str, typer.Option("--notes", "-n", help="Personal notes.")] = "",
     from_file: Annotated[
-        Path | None,
+        Optional[Path],
         typer.Option("--from-file", "-f", help="JSON or TXT metadata template to add from."),
     ] = None,
 ) -> None:

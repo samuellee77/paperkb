@@ -1,8 +1,9 @@
 import re
 from pathlib import Path
+from typing import List, Optional
 
 
-def parse_csv(value: str | None) -> list[str]:
+def parse_csv(value: Optional[str]) -> List[str]:
     if not value:
         return []
     return [item.strip() for item in value.split(",") if item.strip()]

@@ -1,6 +1,6 @@
 from pathlib import Path
 from shutil import copy2
-from typing import Any
+from typing import Any, Dict, List, Optional
 
 import json
 import yaml
@@ -19,7 +19,7 @@ def metadata_path(paper_id: str) -> Path:
     return METADATA_DIR / f"{paper_id}.yaml"
 
 
-def next_paper_id(title: str, year: int | None) -> str:
+def next_paper_id(title: str, year: Optional[int]) -> str:
     base = slugify("-".join(part for part in [title, str(year) if year else ""] if part))
     candidate = base
     counter = 2
@@ -42,15 +42,15 @@ def read_paper(path: Path) -> Paper:
     return Paper.model_validate(data)
 
 
-def load_papers() -> list[Paper]:
+def load_papers() -> List[Paper]:
     init_library()
-    papers: list[Paper] = []
+    papers: List[Paper] = []
     for path in sorted(METADATA_DIR.glob("*.yaml")):
         papers.append(read_paper(path))
     return papers
 
 
-def get_paper(paper_id: str) -> Paper | None:
+def get_paper(paper_id: str) -> Optional[Paper]:
     path = metadata_path(paper_id)
     if not path.exists():
         return None
@@ -60,9 +60,9 @@ def get_paper(paper_id: str) -> Paper | None:
 def add_paper(
     pdf_path: Path,
     title: str,
-    authors: list[str],
-    year: int | None,
-    keywords: list[str],
+    authors: List[str],
+    year: Optional[int],
+    keywords: List[str],
     abstract: str,
     notes: str,
 ) -> Paper:
@@ -86,7 +86,7 @@ def add_paper(
     return paper
 
 
-def add_paper_from_data(data: dict[str, Any], pdf_path: Path | None = None) -> Paper:
+def add_paper_from_data(data: Dict[str, Any], pdf_path: Optional[Path] = None) -> Paper:
     template_pdf_path = str(data.get("pdf_path") or "").strip()
     selected_pdf_path = pdf_path or (Path(template_pdf_path) if template_pdf_path else None)
     if selected_pdf_path is None:
@@ -105,7 +105,7 @@ def add_paper_from_data(data: dict[str, Any], pdf_path: Path | None = None) -> P
     )
 
 
-def load_add_template(path: Path) -> dict[str, Any]:
+def load_add_template(path: Path) -> Dict[str, Any]:
     if not path.exists():
         raise FileNotFoundError(f"Template not found: {path}")
     if path.suffix.lower() == ".json":
@@ -118,7 +118,7 @@ def load_add_template(path: Path) -> dict[str, Any]:
     raise ValueError("Template must be a .json or .txt file.")
 
 
-def template_data() -> dict[str, Any]:
+def template_data() -> Dict[str, Any]:
     return {
         "pdf_path": "./paper.pdf",
         "title": "Paper Title",
@@ -144,9 +144,9 @@ def write_add_template(path: Path, template_format: str) -> Path:
     return path
 
 
-def _parse_text_template(text: str) -> dict[str, Any]:
-    data: dict[str, Any] = {}
-    current_key: str | None = None
+def _parse_text_template(text: str) -> Dict[str, Any]:
+    data: Dict[str, Any] = {}
+    current_key: Optional[str] = None
     for line in text.splitlines():
         if not line.strip() or line.lstrip().startswith("#"):
             continue
@@ -159,7 +159,7 @@ def _parse_text_template(text: str) -> dict[str, Any]:
     return data
 
 
-def _format_text_template(data: dict[str, Any]) -> str:
+def _format_text_template(data: Dict[str, Any]) -> str:
     return (
         "# Edit this file, then run: paperkb add --from-file paper.txt\n"
         f"pdf_path: {data['pdf_path']}\n"
@@ -172,7 +172,7 @@ def _format_text_template(data: dict[str, Any]) -> str:
     )
 
 
-def _list_field(value: Any) -> list[str]:
+def _list_field(value: Any) -> List[str]:
     if value is None:
         return []
     if isinstance(value, list):
@@ -180,13 +180,13 @@ def _list_field(value: Any) -> list[str]:
     return [item.strip() for item in str(value).split(",") if item.strip()]
 
 
-def _optional_int(value: Any) -> int | None:
+def _optional_int(value: Any) -> Optional[int]:
     if value in {None, ""}:
         return None
     return int(value)
 
 
-def seed_demo_paper() -> Paper | None:
+def seed_demo_paper() -> Optional[Paper]:
     init_library()
     demo_metadata = metadata_path(DEMO_PAPER_ID)
     if demo_metadata.exists():

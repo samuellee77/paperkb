@@ -1,3 +1,5 @@
+from typing import Dict, List, Optional, Tuple
+
 from paperkb.models import Paper
 from paperkb.search import search_papers
 from paperkb.storage import get_paper
@@ -11,7 +13,7 @@ def format_citation(paper: Paper) -> str:
     return f"{author_text} ({year_text}). {paper.title}."
 
 
-def citation_match(query: str) -> tuple[Paper, dict[str, object]] | None:
+def citation_match(query: str) -> Optional[Tuple[Paper, Dict[str, object]]]:
     results = search_papers(query, limit=1)
     if not results:
         return None
@@ -21,6 +23,6 @@ def citation_match(query: str) -> tuple[Paper, dict[str, object]] | None:
     return paper, results[0]
 
 
-def matched_keywords(paper: Paper, query: str) -> list[str]:
+def matched_keywords(paper: Paper, query: str) -> List[str]:
     query_lower = query.lower()
     return [keyword for keyword in paper.keywords if keyword.lower() in query_lower]
